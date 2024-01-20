@@ -26,7 +26,7 @@ def vprint(verbose, *args, **kwargs):
         print(*args, **kwargs)
 
 
-def convert(inp, outp, quality, rec=False, verbose=False):
+def convert(inp, outp, quality, rec=False, verbose=False, ignore=None):
     ''' Converts images from HEIC to JPG.
 
     Args:
@@ -36,6 +36,7 @@ def convert(inp, outp, quality, rec=False, verbose=False):
         rec: If True, subdirectories are parsed recursively, else
             they are copied.
         verbose: Verbosity. Default = False.
+        ignore: If not None, what to ignore
     '''
     if os.path.isfile(inp):
         pre, ext = os.path.splitext(inp)
@@ -63,6 +64,8 @@ def convert(inp, outp, quality, rec=False, verbose=False):
         for name in os.listdir(inp):
             inpath = os.path.join(inp, name)
             outpath = os.path.join(outp, name)
+            if ignore is not None and ignore in inpath:  # inpath.endswith(".DS_Store"):
+                continue
             if os.path.isfile(inpath):
                 pre, ext = os.path.splitext(name)
                 outpath = os.path.join(outp, pre + '.jpg') if ext.lower() in ['.heic', '.heif'] else outpath
@@ -101,11 +104,14 @@ if __name__ == '__main__':
     parser.add_argument('-q', '--quality',
                         help='Quality of converted file (integer in [0, 100])',
                         type=int, default=90)
+    parser.add_argument('-i', '--ignore',  # TODO: Test this
+                        help='What to ignore.',
+                        default=None)
     args = parser.parse_args()
 
     # Convert files from HEIC to JPG
     convert(args.data, args.out, quality=args.quality, rec=args.recursive,
-                verbose=args.verbose)
+                verbose=args.verbose, ignore=args.ignore)
 
     # Final time
     t_final = time.time()
